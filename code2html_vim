@@ -1,4 +1,4 @@
-" This File now Mutated by: Soren Andersen [perlspinr] <libertador@flashmail.com>
+" Now Mutated (Maintained) by: Soren Andersen [perlspinr] <libertador@flashmail.com>
 " See for updates / latest version:
 "   http://vim.sourceforge.net/script.php?script_id=330
 " See samples of the output of this script at my site:
@@ -8,13 +8,14 @@
 " Was Maintainer: Bram Moolenaar <Bram@vim.org>
 "	       (modified by David Ne\v{c}as (Yeti) <yeti@physics.muni.cz>)
 " ---------------------------------------------------------------------
-" Last Change: Thu Aug 08 08:00 PM 2002 EDT
+" Last Change: Fri Aug 09 02:00 PM 2002 EDT
+" Version: (vim online versioning scheme) "1.3"
 "       (modified by Soren Andersen)
 " ---------------------------------------------------------------------
 
 " Transform a file into HTML, using the current syntax highlighting.
 
-let s:sourcefilename = substitute(substitute(expand("%:p:~"),'\\','/','g'),'\.html$','','')
+let s:sourcefilename = substitute(substitute(expand("%:p"),'\\','/','g'),'\.html$','','')
 
 " Number lines when explicitely requested or when `number' is set
 if exists("html_number_lines")
@@ -181,22 +182,32 @@ endif
 " HTML header, with the title and generator ;-). Left free space for the CSS,
 " to be filled at the end.
 exe "normal a<HTML>\n<HEAD>\n<TITLE>\e"
-exe "normal a" . substitute(expand("%:t"),'\.html$','','') . "</TITLE>\n" .
-\   "<!--  absolute location: " . s:sourcefilename . "   -->\n\e"
-  if exists("*getftime")
-	exe "normal a" . "<!--   " .
-\ strftime('%d %b %Y %X %Z', getftime(s:sourcefilename)) .
+exe "normal a" . substitute(expand("%:t"),'\.html$','','') . "</TITLE>\n\e"
+" WARNING. The following is my addition [perlspinr] to this plugin. What it
+" does, might be considered a SECURITY CONCERN by some people: it is going to
+" write a fully-specified (absolute) file path of the source file to a comment
+" in the header portion of the HTML. Anyone with the interest in looking at
+" the source of the HTML file will be able to see a little glimpse of the
+" owner's filesystem layout. DISABLE THIS FEATURE if this is unacceptable.
+  if expand('%:t') != 'Untitled.html'
+     exe "normal a<!--   absolute location: " . s:sourcefilename . "   -->\n\e"
+	exe "normal a<!--   " . strftime('%d %b %Y %X %Z', getftime(s:sourcefilename)) .
 \   "     filesize: " . getfsize(s:sourcefilename) . " Bytes.   -->\n\e"
   endif
+" Record of the colorscheme / theme used when this conversion was made.
+exe "normal a<!--   colorscheme name: \"" . g:colors_name . "\"   -->\n\e"
+" Who are we? We are VIM! ... Better than BORG I think ;-)
 exe "normal a<meta name=\"Generator\" content=\"Vim/" . version/100 . "." . version %100 .
-\ " - code2html.vim\">\n\e"
+\   " - code2html.vim\">\n\e"
 if exists("html_use_css")
-  exe "normal a<STYLE TYPE=\"text/css\">\n<!--\n" .
-\ "\n#main_code { margin: -9 3 0 1; }\n" .
-\ "-->\n</STYLE>\n\e"
+  exe "normal a<STYLE TYPE=\"text/css\">\n<!--\n\n\n" .
+\     ".credits { font: smaller \"avant-garde\", \"verdana\", " .
+\     "\n           \"helvetica\", \"arial\", sans-serif; }" .
+\     "\n#main_code { margin: -9 3 0 1; }\n -->\n</STYLE>\n\e"
 endif
+" Now that we have our HEAD on straight...
 exe "normal a</HEAD>\n\n\n<BODY>\n\n<DIV id=main_code>\n<PRE>\n\e"
-
+" Go get'em tiger!  (... sheeesh, I really need some sleep)
 exe "normal \<C-W>p"
 
 " List of all id's
@@ -237,7 +248,10 @@ while s:lnum <= s:end
 
     " Output the text with the same synID, with class set to c{s:id}
     let s:id = synIDtrans(s:id)
-    let s:new = s:new . '<span class="c' . s:id . '">' . substitute(substitute(substitute(substitute(substitute(strpart(s:line, s:startcol - 1, s:col - s:startcol), '&', '\&amp;', 'g'), '<', '\&lt;', 'g'), '>', '\&gt;', 'g'), '"', '\&quot;', 'g'), "\x0c", '<hr class="PAGE-BREAK">', 'g') . '</span>'
+    let s:new = s:new . '<span class="c' . s:id . '">' . 
+\ substitute(substitute(substitute(substitute(substitute(strpart(s:line, s:startcol - 1,
+\ s:col - s:startcol), '&', '\&amp;', 'g'), '<', '\&lt;', 'g'), '>', '\&gt;', 'g'), '"',
+\ '\&quot;', 'g'), "\x0c", '<hr class="PAGE-BREAK">', 'g') . '</span>'
     " Add the class to class list if it's not there yet
     if stridx(s:idlist, "," . s:id . ",") == -1
       let s:idlist = s:idlist . s:id . ","
@@ -255,12 +269,15 @@ while s:lnum <= s:end
   let s:lnum = s:lnum + 1
   +
 endwhile
-" Finish with the last line
-exe "normal \<C-W>pa</PRE>\n</DIV></BODY>\n</HTML>\e"
+" Finish with the last lines
+exe "normal \<C-W>pa</PRE>\n</DIV>\e"
+exe "normal a<DIV CLASS=credits ALIGN=right>\ncode syntax highlighting by " .
+\   "<A NAME=vimhome TARGET=\"_top\" HREF=\"http://vim.sourceforge.net/\">GVIM</A>,\n" .
+\   "using the &quot;" .g:colors_name . "&quot; theme. &nbsp;</DIV>\n\n</BODY>\n</HTML>\e"
 
 " Now, when we finally know which, we define the colors and styles
 if exists("html_use_css")
-  11
+  12
 endif
 
 " Find out the background and foreground color.
@@ -318,7 +335,7 @@ while s:idlist != ""
     endif
   else
     execute '%s+<span class="c' . s:id . '">\([^<]*\)</span>+\1+g'
-    11
+    12
   endif
 endwhile
 
