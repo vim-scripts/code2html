@@ -1,0 +1,43 @@
+This is a mirror of http://www.vim.org/scripts/script.php?script_id=330
+
+WHAT:
+This is a substantially modified rewrite of the "2html.vim" script that's found in the Vim runtime "syntax" directory, and used exactly as that file is used (i.e.): 
+
+  :so[urce] ~/scripts/code2html.vim
+
+RECENT:
+24 Sep 2008 - ATTENTION PLEASE! There will be no more revisions to this script under *this* name.  Because there is a collision between the name "code2html[.vim]" and another F/LOSS software project by that name, I am renaming this script to "buf2html[.vim]".  THE NEW SCRIPT IS LOCATED AT http://www.vim.org/scripts/script.php?script_id=2384.
+
+WHO:
+Based on work by Bram Moolenaar and David Nečas ("Yeti"), now maintained by Soren Andersen.  Past contributions by Christian Hujer.       
+
+WHY:
+The main thing this module changes is the automatic addition of some simple css code to specify the fixed-width (monospace) font you want the HTML-ized syntax-colored code to be rendered in -- IF any of those fonts are findable by the reader's WWW browser. This provides an HTML rendering in modern browsers that can surprisingly closely replicate the appearance in the GVIM editor.
+
+INSTALL:
+Save this vim file to a directory convenient for you. Do *not* place it in a runtime plugin directory; you do not want it to be evaluated when opening any file for editing.  This is a script but not a plugin.  The author tends to have a ~/scripts dir on his accounts, and places this file there, alongside awk, sed, perl and other such script/programs.
+
+FEATURES:
+The code will find out what "guifont" value the user is using, and convert that specification (usually set in ".gvimrc") to a css font spec. There are also changes to output an up-to-date xml -type header (DTD) by Christian Hujer.
+
+It will also create a "<DIV>" section containing the main "<PRE>" block. To understand why this is good, running a test example shows better than a thousand words. It allows specification of the font in css, as well as some other things, like padding of the contents of the "<PRE>" and some differing bgcolor for the document as a whole vs the "code" content. This is all primarily a matter of personal preference of course.
+
+Examples of source highlighted with this script can be found at my home page at http://intrepid.perlmonk.org
+
+If you view the output of this script -- run on your GVIM on one of your own source code documents, and viewed in a competent css-supporting browser -- you may find that the document looks so identical to your GVIM display that you'll be tempted to start sending vim commands to your browser ;-). 
+
+UPDATE: 22 Oct 2002
+In a little while a new version will be uploaded (presently I am having Christian check our merged changes before we commit to releasing this major update).
+  * Made output of DTD not dependant on whether user has html_use_css=1.
+  * Made significant changes to program flow, fixed a problem with output of the style definitions in the header STYLE block.
+  * Added several new variables that the user can set to change the behavior of the script.
+
+All in all, the program is more robust, outputs more correct (according to latest W3C standards) HTML, script has more configurability, and the output is prettier (as source).
+
+UPDATE: Aug 08 2002 20:32:28 EDT
+Sorry -- did not have time right now to properly document ALL the changes in v1.1, but these include:
+  * fixed the stupid ".main_code" bug (should have written to the head style block "#main-code" instead of ".main-code"). aargh.
+  * added a new function to create the CSS font specifier, it is doing a much better job than the previous code
+  * the output is much more cosmetically proper.
+Thank you very much to all the people who downloaded version 1.0. Please give the update a try -- it is much improved.
+
