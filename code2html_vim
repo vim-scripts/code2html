@@ -1,10 +1,20 @@
-" Vim syntax support file
-" Maintainer: Bram Moolenaar <Bram@vim.org>
-" Last Change: Tue Jul 02 03:00 PM 2002 EDT
+" This File now Mutated by: Soren Andersen [perlspinr] <libertador@flashmail.com>
+" See for updates / latest version:
+"   http://vim.sourceforge.net/script.php?script_id=330
+" See samples of the output of this script at my site:
+"  http://home.att.net/~perlspinr/makefiles/makefileworkshop.html
+" --------------------------------------------------------------------
+" Previous Credits ...
+" Was Maintainer: Bram Moolenaar <Bram@vim.org>
 "	       (modified by David Ne\v{c}as (Yeti) <yeti@physics.muni.cz>)
-"  (modified by Soren Andersen [perlspinr] <libertador@flashmail.com>)
+" ---------------------------------------------------------------------
+" Last Change: Thu Aug 08 08:00 PM 2002 EDT
+"       (modified by Soren Andersen)
+" ---------------------------------------------------------------------
 
 " Transform a file into HTML, using the current syntax highlighting.
+
+let s:sourcefilename = substitute(substitute(expand("%:p:~"),'\\','/','g'),'\.html$','','')
 
 " Number lines when explicitely requested or when `number' is set
 if exists("html_number_lines")
@@ -15,12 +25,7 @@ endif
 
 " When not in gui we can only guess the colors.
 if has("gui_running")
-  let s:whatterm = "gui"
- if strlen(&guifont)
-		 let SA_guifont = substitute(substitute(&guifont, '\(\a\{-\}\)_',' \"\1 ', "g"),':h\(\d\+\)','\" \1pt','g')
- else
-		 let SA_guifont =
- endif
+ let s:whatterm = "gui"
 else
   let s:whatterm = "cterm"
   if &t_Co == 8
@@ -55,6 +60,23 @@ endif
 " Return good color specification: in GUI no transformation is done, in
 " terminal return RGB values of known colors and empty string on unknown
 if s:whatterm == "gui"
+" Soren Andersen's new function:
+  function! WhatGuiFonts()
+      if strlen(&guifont)
+   let nind = ',\n           '
+   let fontsizes = substitute(&guifont,'\(\i\{4,}\):h\(\d\+\),\=','\2pt\1 '     ,'g')
+   let guifontss = substitute(fontsizes,'\(\d\{1,2}pt\)\(\S*\)\s','\1 \"\2\" , ','g')
+   let guifonts = substitute( substitute(guifontss, '_',' ','g'), ',\s*',  nind ,'g')
+    return guifonts
+      else
+  let nofontswarningmsg = '/* no font names were provided, please check your GVIM configuration! */'
+" The following 'font name', 'Petunia300Quacker', is imaginary. It is needed
+" merely for syntactical purposes. Since you'll always have carefully defined
+" the *guifont* in your vimrc, this kludge won't ever be invoked, right?
+    execute "return \n  " . nofontswarningmsg . "\n \"9pt Petunia300Quacker\""
+      endif
+  endfun
+
   function! s:HtmlColor(color)
     return a:color
   endfun
@@ -158,13 +180,22 @@ endif
 
 " HTML header, with the title and generator ;-). Left free space for the CSS,
 " to be filled at the end.
-exe "normal a<html>\n<head>\n<title>\e"
-exe "normal a" . substitute(expand("%:p:~"),'\.html$','','') . "</title>\n\e"
-exe "normal a<meta name=\"Generator\" content=\"Vim/" . version/100 . "." . version %100 . "\">\n\e"
+exe "normal a<HTML>\n<HEAD>\n<TITLE>\e"
+exe "normal a" . substitute(expand("%:t"),'\.html$','','') . "</TITLE>\n" .
+\   "<!--  absolute location: " . s:sourcefilename . "   -->\n\e"
+  if exists("*getftime")
+	exe "normal a" . "<!--   " .
+\ strftime('%d %b %Y %X %Z', getftime(s:sourcefilename)) .
+\   "     filesize: " . getfsize(s:sourcefilename) . " Bytes.   -->\n\e"
+  endif
+exe "normal a<meta name=\"Generator\" content=\"Vim/" . version/100 . "." . version %100 .
+\ " - code2html.vim\">\n\e"
 if exists("html_use_css")
-  exe "normal a<style type=\"text/css\">\n<!--\n" . "\n.main_code { padding: 9 3; }\n" . "-->\n</style>\n\e"
+  exe "normal a<STYLE TYPE=\"text/css\">\n<!--\n" .
+\ "\n#main_code { margin: -9 3 0 1; }\n" .
+\ "-->\n</STYLE>\n\e"
 endif
-exe "normal a</head>\n\n\n<body>\n\n<DIV id=main_code>\n<pre>\n\e"
+exe "normal a</HEAD>\n\n\n<BODY>\n\n<DIV id=main_code>\n<PRE>\n\e"
 
 exe "normal \<C-W>p"
 
@@ -190,7 +221,8 @@ while s:lnum <= s:end
   let s:new = ""
 
   if s:numblines
-    let s:new = '<span class="lnr">' . strpart('        ', 0, strlen(line("$")) - strlen(s:lnum)) . s:lnum . '</span>  '
+    let s:new = '<SPAN CLASS="lnr">' . strpart('        ', 0, strlen(line("$")) - strlen(s:lnum)) .
+\               s:lnum . '</SPAN>  '
   endif
 
   " Loop over each character in the line
@@ -224,11 +256,11 @@ while s:lnum <= s:end
   +
 endwhile
 " Finish with the last line
-exe "normal \<C-W>pa</pre>\n</DIV></body>\n</html>\e"
+exe "normal \<C-W>pa</PRE>\n</DIV></BODY>\n</HTML>\e"
 
 " Now, when we finally know which, we define the colors and styles
 if exists("html_use_css")
-  8
+  11
 endif
 
 " Find out the background and foreground color.
@@ -245,11 +277,14 @@ endif
 " For Netscape 4, set <body> attributes too, though, strictly speaking, it's
 " incorrect.
 if exists("html_use_css")
-  exec "normal A\npre { color: " . s:fgc . "; background-color: " . s:bgc . "; font: " .SA_guifont .", \"courier new\" 9pt; font-size-adjust: 0.50; }\n\e"
+  let s:ourfontstyle = WhatGuiFonts()
+  exec "normal A\n\n PRE { color: " . s:fgc . "; background-color: " . s:bgc .
+\ ";\n     font: " . s:ourfontstyle . "monospaced;  font-size-adjust:0.50;"
+\ " padding:6;\n }\n\e"
 "  yank
 "  put
 "  execute "normal ^cwbody\e"
-  exec "normal A\nbody { color: #FFFFFF; background-color: #000200;\n   padding: 9 0; margin: 0; }\e"
+  exec "normal A\n BODY { padding: 9 0;  margin: 0; }\n\e"
 else
   execute '%s:<body>:<body ' . 'bgcolor="' . s:bgc . '" text="' . s:fgc . '">'
 endif
@@ -259,7 +294,8 @@ if s:numblines
   if exists("html_use_css")
     execute "normal A\n.lnr { " . s:CSS1(highlightID("LineNr")) . "}\e"
   else
-    execute '%s+<span class="lnr">\([^<]*\)</span>+' . s:HtmlOpening(highlightID("LineNr")) . '\1' . s:HtmlClosing(highlightID("LineNr")) . '+g'
+    execute '%s+<span class="lnr">\([^<]*\)</span>+' . s:HtmlOpening(highlightID("LineNr")) .
+\ '\1' . s:HtmlClosing(highlightID("LineNr")) . '+g'
   endif
 endif
 
@@ -277,11 +313,12 @@ while s:idlist != ""
     if exists("html_use_css")
       execute "normal A\n.c" . s:id . " { " . s:attr . "}"
     else
-      execute '%s+<span class="c' . s:id . '">\([^<]*\)</span>+' . s:HtmlOpening(s:id) . '\1' . s:HtmlClosing(s:id) . '+g'
+      execute '%s+<span class="c' . s:id . '">\([^<]*\)</span>+' . s:HtmlOpening(s:id) .
+\ '\1' . s:HtmlClosing(s:id) . '+g'
     endif
   else
     execute '%s+<span class="c' . s:id . '">\([^<]*\)</span>+\1+g'
-    8
+    11
   endif
 endwhile
 
